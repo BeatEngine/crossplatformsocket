@@ -1,0 +1,13 @@
+
+
+namespace CSWL
+{
+	class Resolver
+	{
+
+
+
+
+
+	};
+}
