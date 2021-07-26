@@ -1,17 +1,3 @@
-#define WIN32_LEAN_AND_MEAN
-
-#include <windows.h>
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#include <stdlib.h>
-#include <stdio.h>
-
-
-// Need to link with Ws2_32.lib, Mswsock.lib, and Advapi32.lib
-#pragma comment (lib, "Ws2_32.lib")
-#pragma comment (lib, "Mswsock.lib")
-#pragma comment (lib, "AdvApi32.lib")
-
 
 
 void CrossSocket::deconstruction()
@@ -115,49 +101,97 @@ int CrossSocket::translateEnum(CSWL::SocketType typ)
     return -1;
 }
 
-void CrossSocket::createSocket()
+void CrossSocket::createSocket(std::string domainOrIp)
 {
-   SOCKET sock = socket(translateEnum(this->family), translateEnum(this->type), translateEnum(this->protocol));
-   crsSocket = sock;
+    
 
+    if (this->behaviour == CSWL::ServerOrClient::SERVER)
+    {
+        //Server
+        CSWL::Endpoint entp = CSWL::Resolver::resolveLocalServerAddress(this->port, *this);
+        if (!this->actionSuccess())
+        {
+            //Error was seted by resolver.
+            return;
+        }
+        endpoint = entp;
+
+        SOCKET sock = socket(translateEnum(this->family), translateEnum(this->type), translateEnum(this->protocol));
+        if (sock == INVALID_SOCKET) {
+
+            std::string err = "create socket result: ";
+            err += std::to_string(WSAGetLastError());
+            setError(err);
+            return;
+        }
+        crsSocket = sock;
+
+    }
+    else if(domainOrIp.length() > 0)
+    {
+        //Client
+        CSWL::Endpoint entp = CSWL::Resolver::resolveAddress(domainOrIp, this->port, *this);
+        if (!this->actionSuccess())
+        {
+            //Error was seted by resolver.
+            return;
+        }
+        endpoint = entp;
+
+
+        SOCKET sock = socket(translateEnum(this->family), translateEnum(this->type), translateEnum(this->protocol));
+        if (sock == INVALID_SOCKET) {
+
+            std::string err = "create socket result: ";
+            err += std::to_string(WSAGetLastError());
+            setError(err);
+            return;
+        }
+        crsSocket = sock;
+    }
+    else
+    {
+        std::string err = "tried to create a clientsocket without or empty aim (domain / dotted ip).";
+        setError(err);
+    }
 }
 
 int CrossSocket::connect()
 {
-
+    return 0;
 }
 
 int CrossSocket::bind()
 {
-
+    return 0;
 
 }
 int CrossSocket::listen()
 {
-
+    return 0;
 
 }
 int CrossSocket::accept()
 {
-
+    return 0;
 
 }
 
 int CrossSocket::receive()
 {
-
+    return 0;
 
 }
 
 int CrossSocket::send()
 {
-
+    return 0;
 
 }
 
 int CrossSocket::shutdown()
 {
-
+    return 0;
 
 }
 

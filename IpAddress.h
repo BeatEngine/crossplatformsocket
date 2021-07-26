@@ -25,6 +25,11 @@ namespace CSWL
 		CS_IPPROTO_ICMP, CS_IPPROTO_IGMP, CS_IPPROTO_TCP, CS_IPPROTO_UDP
 	};
 
+	enum ServerOrClient
+	{
+		SERVER, CLIENT
+	};
+
 	class IpAddress
 	{
 		IpVersion version;
@@ -45,6 +50,23 @@ namespace CSWL
 		IpAddress(std::string& commonIpRepresentation)
 		{
 
+		}
+
+		bool setBinaryData(char* data, int dataLength, IpVersion version)
+		{
+			this->version = version;
+			if (dataLength < 17 && data != 0 && dataLength > 0)
+			{
+				for (int i = 0; i < dataLength; i++)
+				{
+					addressData[i] = data[i];
+				}
+			}
+			else
+			{
+				return false;
+			}
+			return true;
 		}
 
 		//todo Rule of 3

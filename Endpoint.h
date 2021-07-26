@@ -3,10 +3,11 @@ namespace CSWL
 {
 	class Endpoint
 	{
-		IpAddress ip;
-		unsigned short port;
 
 	public:
+
+		IpAddress ip;
+		unsigned short port;
 
 		Endpoint()
 		{
