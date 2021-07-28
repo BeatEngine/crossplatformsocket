@@ -1,5 +1,4 @@
 
-
 namespace CSWL
 {
 	class Resolver
@@ -10,12 +9,14 @@ namespace CSWL
 
 		static Endpoint resolveLocalServerAddress(short port, CrossSocket& socket);
 
-		static Endpoint resolveAddress(std::string domainOrDottedIp, short port, CrossSocket& socket);
-		
+		static std::vector<CSWL::Endpoint> resolveAddresses(std::string domainOrDottedIp, short port, CrossSocket& socket);
+
 
 
 
 	};
+
+
 }
 
 #ifdef __linux__ 
@@ -23,5 +24,9 @@ namespace CSWL
 #else
 #include "windowsResolver.h"
 #endif
+
+
+
+
 
 

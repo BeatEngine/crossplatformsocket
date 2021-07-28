@@ -130,14 +130,15 @@ void CrossSocket::createSocket(std::string domainOrIp)
     else if(domainOrIp.length() > 0)
     {
         //Client
-        CSWL::Endpoint entp = CSWL::Resolver::resolveAddress(domainOrIp, this->port, *this);
+        //Linker LNK2019 linking error unregistered extern symbol
+        std::vector<CSWL::Endpoint> entps = CSWL::Resolver::resolveAddresses(domainOrIp, this->port, *this);
         if (!this->actionSuccess())
         {
             //Error was seted by resolver.
             return;
         }
-        endpoint = entp;
-
+        endpoint = entps[0];
+        
 
         SOCKET sock = socket(translateEnum(this->family), translateEnum(this->type), translateEnum(this->protocol));
         if (sock == INVALID_SOCKET) {

@@ -49,7 +49,23 @@ namespace CSWL
 		*/
 		IpAddress(std::string& commonIpRepresentation)
 		{
+			setFormatedData(commonIpRepresentation);
+		}
 
+
+		IpAddress& operator=(const IpAddress& other)
+		{
+			this->version = other.version;
+			for (int i = 0; i < 16; i++)
+			{
+				addressData[i] = other.addressData[i];
+			}
+			return *this;
+		}
+
+		IpAddress(const IpAddress& other)
+		{
+			*this = other;
 		}
 
 		bool setBinaryData(char* data, int dataLength, IpVersion version)
@@ -69,14 +85,108 @@ namespace CSWL
 			return true;
 		}
 
-		//todo Rule of 3
+		bool setFormatedData(std::string data)
+		{
+			
+			if (data.size() < 44 && data.size() > 0)
+			{
+				std::string tmp = "";
+				int positionData = 0;
+				if (data.find('.') != std::string::npos)
+				{
+					this->version = CSWL::IpVersion::IPv4;
+					for (int i = 0; i < data.size(); i++)
+					{
+						if (data[i] == '.')
+						{
+							int dez = atoi(tmp.c_str());
+							addressData[positionData] = (unsigned char)(dez);
+							positionData++;
+							tmp = "";
+						}
+						else
+						{
+							tmp += data[i];
+						}
+					}
+					int dez = atoi(tmp.c_str());
+					addressData[positionData] = (unsigned char)(dez);
+				}
+				else if (data.find(':') != std::string::npos)
+				{
+					this->version = CSWL::IpVersion::IPv6;
+					for (int i = 0; i < data.size(); i++)
+					{
+						if (data[i] == ':')
+						{
+							unsigned int conv = 0;
+							sscanf(tmp.c_str(), "%x", &conv);
+							addressData[positionData] = (unsigned char)(conv >> 8);
+							addressData[positionData+1] = (unsigned char)(conv);
+							positionData+=2;
+							tmp = "";
+						}
+						else
+						{
+							tmp += data[i];
+						}
+					}
+					unsigned int conv = 0;
+					sscanf(tmp.c_str(), "%x", &conv);
+					addressData[positionData] = (unsigned char)(conv >> 8);
+					addressData[positionData + 1] = (unsigned char)(conv);
+				}
+				else
+				{
+					return false;
+				}
+			}
+			else
+			{
+				return false;
+			}
+			return true;
+		}
+
 
 		/**
-		* @Return String representation of Ip (v4 xor v6)
+		* @Return String representation of Ip (v4 ^ v6)
 		*/
 		std::string toString()
 		{
-			//todo impl
+			std::string result = "";
+			if (version == IpVersion::IPv4)
+			{
+				for (int i = 0; i < 4; i++)
+				{
+					result += std::to_string(addressData[i]);
+					if (i + 1 < 4)
+					{
+						result += ".";
+					}
+				}
+			}
+			else
+			{
+				char hex[5] = "0000";
+				for (int i = 0; i < 16; i += 2)
+				{
+					//Two bytes into one 2 bytes long short first or second part e.g. (1010101100000000 | 0000000010101010)
+					unsigned short tmp = ((unsigned short)(addressData[i]) << 8) | (unsigned short)(addressData[i + 1]);
+					sprintf(hex, "%x", tmp);
+					std::string zeroFilled = hex;
+					while (zeroFilled.size() < 4)
+					{
+						zeroFilled = "0" + zeroFilled;
+					}
+					result += zeroFilled;
+					if (i + 2 < 16)
+					{
+						result += ":";
+					}
+				}
+			}
+			return result;
 		}
 
 	};

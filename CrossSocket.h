@@ -5,6 +5,7 @@
 	#include <sys/socket.h>
 	#include <netinet/in.h>
 #else
+	#define _CRT_SECURE_NO_WARNINGS
 	#ifndef WIN32_LEAN_AND_MEAN
 	#define WIN32_LEAN_AND_MEAN
 	#endif
@@ -20,9 +21,10 @@
 	#pragma comment (lib, "AdvApi32.lib")
 #endif
 
+#include <vector>
+
 #include "WLthread.h"
 #include "Endpoint.h"
-
 
 class CrossSocket
 {
@@ -155,12 +157,17 @@ public:
 		return protocol;
 	}
 
+	CSWL::Endpoint getEntpoint()
+	{
+		return endpoint;
+	}
+
 
 
 };
 
-//Implementation
 
+//Implementation
 #include "Resolver.h"
 
 #ifdef __linux__ 

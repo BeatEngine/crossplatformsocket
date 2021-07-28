@@ -7,7 +7,7 @@ namespace CSWL
 
 	}
 
-	Endpoint Resolver::resolveAddress(std::string domainOrDottedIp, short port, CrossSocket& socket)
+	std::vector<Endpoint> resolveAddresses(std::string domainOrDottedIp, short port, CrossSocket& socket)
 	{
 		Endpoint endpoint;
 	}

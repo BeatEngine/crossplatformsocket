@@ -14,7 +14,17 @@ namespace CSWL
 			port = 0;
 		}
 
-		//todo Rule of 3
+		Endpoint(const Endpoint& other)
+		{
+			*this = other;
+		}
+
+		Endpoint& operator=(const Endpoint& other)
+		{
+			this->port = other.port;
+			this->ip = other.ip;
+			return *this;
+		}
 
 
 	};

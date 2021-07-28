@@ -11,7 +11,7 @@ namespace CSWL
 		hints.ai_protocol = socket.translateEnum(socket.getProtocol());
 		hints.ai_flags = AI_PASSIVE;
 		char tmpPort[7];
-		sprintf_s(tmpPort, "%d", port);
+		sprintf(tmpPort, "%d", port);
 		int iResult = getaddrinfo(NULL, tmpPort, &hints, &result);
 		if (iResult != 0)
 		{
@@ -29,7 +29,7 @@ namespace CSWL
 			{
 				version = CSWL::IpVersion::IPv6;
 			}
-			
+
 			if (!endpoint.ip.setBinaryData(result->ai_addr->sa_data, result->ai_addrlen, version))
 			{
 				std::string err = "converting binary resolver result failed.";
@@ -40,9 +40,8 @@ namespace CSWL
 		return endpoint;
 	}
 
-	Endpoint Resolver::resolveAddress(std::string domainOrDottedIp, short port, CrossSocket& socket)
+	std::vector<CSWL::Endpoint> resolveAddresses(std::string domainOrDottedIp, short port, CrossSocket& socket)
 	{
-		Endpoint endpoint;
 		struct addrinfo* result = 0;
 		struct addrinfo hints;
 		ZeroMemory(&hints, sizeof(hints));
@@ -51,7 +50,10 @@ namespace CSWL
 		hints.ai_protocol = socket.translateEnum(socket.getProtocol());
 		hints.ai_flags = AI_PASSIVE;
 		char tmpPort[7];
-		sprintf_s(tmpPort, "%d", port);
+		sprintf(tmpPort, "%d", port);
+
+		std::vector<Endpoint> endpoints;
+
 		int iResult = getaddrinfo(domainOrDottedIp.c_str(), tmpPort, &hints, &result);
 		if (iResult != 0)
 		{
@@ -61,23 +63,33 @@ namespace CSWL
 		}
 		else
 		{
-			endpoint.port = port;
-			// Copy Ip binary into Endpoint
-
 			CSWL::IpVersion version = CSWL::IpVersion::IPv4;
 			if (socket.getFamlily() == CSWL::AddressFamily::CS_AF_INET6)
 			{
 				version = CSWL::IpVersion::IPv6;
 			}
 
-			if (!endpoint.ip.setBinaryData(result->ai_addr->sa_data, result->ai_addrlen, version))
+			struct addrinfo* currentResult = result;
+			do
 			{
-				std::string err = "converting binary resolver result failed.";
-				socket.setError(err);
-			}
+				Endpoint endpoint;
+				endpoint.port = port;
+				// Copy Ip binary into Endpoint
+
+				if (!endpoint.ip.setBinaryData(currentResult->ai_addr->sa_data, currentResult->ai_addrlen, version))
+				{
+					std::string err = "converting binary resolver result failed.";
+					socket.setError(err);
+				}
+
+				endpoints.push_back(endpoint);
+
+				currentResult = currentResult->ai_next;
+			} while (currentResult != 0);
 		}
 		freeaddrinfo(result);
-		return endpoint;
+		return endpoints;
 	}
 
 }
+
