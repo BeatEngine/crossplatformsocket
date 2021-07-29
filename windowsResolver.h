@@ -41,7 +41,7 @@ namespace CSWL
 		return endpoint;
 	}
 
-	std::vector<Endpoint> resolveAddresses(std::string domainOrDottedIp, short port, CrossSocket& socket)
+	std::vector<Endpoint> Resolver::resolveAddresses(std::string domainOrDottedIp, short port, CrossSocket& socket)
 	{
 		struct addrinfo* result = 0;
 		struct addrinfo hints;

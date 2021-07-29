@@ -21,7 +21,6 @@ int main()
 	CSWL::Endpoint endpoint = socket.getEntpoint();
 	printf("Endpoint of socket: [%s]:%s", endpoint.ip.toString().c_str(), std::to_string(endpoint.port).c_str());
 	
-	
 	return 0;
 }
 
