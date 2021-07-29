@@ -1,180 +1,158 @@
 
-#ifdef __linux__ 
-	#include <unistd.h>
-	#include <sys/types.h> 
-	#include <sys/socket.h>
-	#include <netinet/in.h>
-#else
-	#define _CRT_SECURE_NO_WARNINGS
-	#ifndef WIN32_LEAN_AND_MEAN
-	#define WIN32_LEAN_AND_MEAN
-	#endif
+#include "crossSocketIncludes.h"
 
-	#include <windows.h>
-	#include <winsock2.h>
-	#include <ws2tcpip.h>
-	#include <iphlpapi.h>
-	#include <stdio.h>
-
-	#pragma comment (lib, "Ws2_32.lib")
-	#pragma comment (lib, "Mswsock.lib")
-	#pragma comment (lib, "AdvApi32.lib")
-#endif
-
-#include <vector>
-
-#include "WLthread.h"
-#include "Endpoint.h"
-
-class CrossSocket
+namespace CSWL
 {
-	CSWL::SocketType type;
 
-	CSWL::AddressFamily family;
-
-	CSWL::IpProtocol protocol;
-
-	CSWL::ServerOrClient behaviour;
-
-	short port;
-	CSWL::Endpoint endpoint;
-
-	void* winWSADATA;
-
-	int currentStateResult;
-	std::string currentError;
-
-	void initialisation();
-	void deconstruction();
-
-	void createSocket(std::string domainOrIp = "");
-	
-
-
-	uintptr_t crsSocket;
-
-public:
-	//todo Rule of 3
-
-	int translateEnum(CSWL::AddressFamily);
-	int translateEnum(CSWL::IpProtocol);
-	int translateEnum(CSWL::SocketType);
-
-	void setError(std::string error)
+	class CrossSocket
 	{
-		currentError = error;
-	}
+		SocketType type;
 
-	int connect();
+		AddressFamily family;
 
-	int bind();
-	int listen();
-	int accept();
+		IpProtocol protocol;
 
-	int receive();
+		ServerOrClient behaviour;
 
-	int send();
+		short port;
+		Endpoint endpoint;
 
-	int shutdown();
+		void* winWSADATA;
 
-	/**
-	* @Return true if no error
-	*/
-	bool actionSuccess()
-	{
-		return currentError.size() == 0;
-	}
+		int currentStateResult;
+		std::string currentError;
 
-	/*
-	* @Return last Error message.
-	*/
-	std::string lastError()
-	{
-		return currentError;
-	}
+		void initialisation();
+		void deconstruction();
 
-	/**
-	* Delete last Error
-	*/
-	void unsetError()
-	{
-		currentError = "";
-	}
+		void createSocket(std::string domainOrIp = "");
 
-	CrossSocket(CSWL::ServerOrClient behaviour, short port, CSWL::AddressFamily family, CSWL::SocketType type, CSWL::IpProtocol protocol)
-	{
-		crsSocket = 0;
-		currentStateResult = 0;
-		winWSADATA = 0;
-		currentError = "";
-		this->port = port;
-		this->behaviour = behaviour;
-		this->family = family;
-		this->type = type;
-		this->protocol = protocol;
-		initialisation();
-		if (actionSuccess())
+
+
+		uintptr_t crsSocket;
+
+	public:
+		//todo Rule of 3
+
+		int translateEnum(AddressFamily);
+		int translateEnum(IpProtocol);
+		int translateEnum(SocketType);
+
+		void setError(std::string error)
 		{
-			createSocket();
+			currentError = error;
 		}
-	}
 
-	CrossSocket(CSWL::ServerOrClient behaviour, short port, CSWL::AddressFamily family, CSWL::SocketType type, CSWL::IpProtocol protocol, std::string domainOrDottedIp)
-	{
-		crsSocket = 0;
-		currentStateResult = 0;
-		winWSADATA = 0;
-		currentError = "";
-		this->port = port;
-		this->behaviour = behaviour;
-		this->family = family;
-		this->type = type;
-		this->protocol = protocol;
-		initialisation();
-		if (actionSuccess())
+		int connect();
+
+		int bind();
+		int listen();
+		int accept();
+
+		int receive();
+
+		int send();
+
+		int shutdown();
+
+		/**
+		* @Return true if no error
+		*/
+		bool actionSuccess()
 		{
-			createSocket(domainOrDottedIp);
+			return currentError.size() == 0;
 		}
-	}
 
-	~CrossSocket()
-	{
-		deconstruction();
-	}
+		/*
+		* @Return last Error message.
+		*/
+		std::string lastError()
+		{
+			return currentError;
+		}
 
-	CSWL::AddressFamily getFamlily()
-	{
-		return family;
-	}
+		/**
+		* Delete last Error
+		*/
+		void unsetError()
+		{
+			currentError = "";
+		}
 
-	CSWL::SocketType getSocketType()
-	{
-		return type;
-	}
+		CrossSocket(ServerOrClient behaviour, short port, AddressFamily family, SocketType type, IpProtocol protocol)
+		{
+			crsSocket = 0;
+			currentStateResult = 0;
+			winWSADATA = 0;
+			currentError = "";
+			this->port = port;
+			this->behaviour = behaviour;
+			this->family = family;
+			this->type = type;
+			this->protocol = protocol;
+			initialisation();
+			if (actionSuccess())
+			{
+				createSocket();
+			}
+		}
 
-	CSWL::IpProtocol getProtocol()
-	{
-		return protocol;
-	}
+		CrossSocket(ServerOrClient behaviour, short port, AddressFamily family, SocketType type, IpProtocol protocol, std::string domainOrDottedIp)
+		{
+			crsSocket = 0;
+			currentStateResult = 0;
+			winWSADATA = 0;
+			currentError = "";
+			this->port = port;
+			this->behaviour = behaviour;
+			this->family = family;
+			this->type = type;
+			this->protocol = protocol;
+			initialisation();
+			if (actionSuccess())
+			{
+				createSocket(domainOrDottedIp);
+			}
+		}
 
-	CSWL::Endpoint getEntpoint()
-	{
-		return endpoint;
-	}
+		~CrossSocket()
+		{
+			deconstruction();
+		}
+
+		AddressFamily getFamlily()
+		{
+			return family;
+		}
+
+		SocketType getSocketType()
+		{
+			return type;
+		}
+
+		IpProtocol getProtocol()
+		{
+			return protocol;
+		}
+
+		Endpoint getEntpoint()
+		{
+			return endpoint;
+		}
 
 
 
-};
+	};
 
+}
 
 //Implementation
-#include "Resolver.h"
 
-#ifdef __linux__ 
-#include "linuxImplementation.h"
-#else
-#include "windowsImplementation.h"
-#endif
+#include "resolverImplementation.h"
+
+#include "crossSocketImplementation.h"
+
+
 
 
 

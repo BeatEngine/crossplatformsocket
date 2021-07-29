@@ -1,5 +1,6 @@
 namespace CSWL
 {
+	
 	Endpoint Resolver::resolveLocalServerAddress(short port, CrossSocket& socket)
 	{
 		Endpoint endpoint;
@@ -24,10 +25,10 @@ namespace CSWL
 			endpoint.port = port;
 			// Copy Ip binary into Endpoint
 
-			CSWL::IpVersion version = CSWL::IpVersion::IPv4;
-			if (socket.getFamlily() == CSWL::AddressFamily::CS_AF_INET6)
+			IpVersion version = IpVersion::IPv4;
+			if (socket.getFamlily() == AddressFamily::CS_AF_INET6)
 			{
-				version = CSWL::IpVersion::IPv6;
+				version = IpVersion::IPv6;
 			}
 
 			if (!endpoint.ip.setBinaryData(result->ai_addr->sa_data, result->ai_addrlen, version))
@@ -40,7 +41,7 @@ namespace CSWL
 		return endpoint;
 	}
 
-	std::vector<CSWL::Endpoint> resolveAddresses(std::string domainOrDottedIp, short port, CrossSocket& socket)
+	std::vector<Endpoint> resolveAddresses(std::string domainOrDottedIp, short port, CrossSocket& socket)
 	{
 		struct addrinfo* result = 0;
 		struct addrinfo hints;
@@ -63,10 +64,10 @@ namespace CSWL
 		}
 		else
 		{
-			CSWL::IpVersion version = CSWL::IpVersion::IPv4;
-			if (socket.getFamlily() == CSWL::AddressFamily::CS_AF_INET6)
+			IpVersion version = IpVersion::IPv4;
+			if (socket.getFamlily() == AddressFamily::CS_AF_INET6)
 			{
-				version = CSWL::IpVersion::IPv6;
+				version = IpVersion::IPv6;
 			}
 
 			struct addrinfo* currentResult = result;
@@ -90,6 +91,7 @@ namespace CSWL
 		freeaddrinfo(result);
 		return endpoints;
 	}
+	
 
 }
 

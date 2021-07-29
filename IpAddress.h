@@ -94,7 +94,7 @@ namespace CSWL
 				int positionData = 0;
 				if (data.find('.') != std::string::npos)
 				{
-					this->version = CSWL::IpVersion::IPv4;
+					this->version = IpVersion::IPv4;
 					for (int i = 0; i < data.size(); i++)
 					{
 						if (data[i] == '.')
@@ -114,7 +114,7 @@ namespace CSWL
 				}
 				else if (data.find(':') != std::string::npos)
 				{
-					this->version = CSWL::IpVersion::IPv6;
+					this->version = IpVersion::IPv6;
 					for (int i = 0; i < data.size(); i++)
 					{
 						if (data[i] == ':')

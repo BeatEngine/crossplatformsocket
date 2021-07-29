@@ -1,5 +1,6 @@
 namespace CSWL
 {
+	/*
 	Endpoint Resolver::resolveLocalServerAddress(short port, CrossSocket& socket)
 	{
 		Endpoint endpoint;
@@ -11,5 +12,6 @@ namespace CSWL
 	{
 		Endpoint endpoint;
 	}
+	*/
 	
 }

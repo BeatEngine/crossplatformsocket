@@ -1,6 +1,6 @@
 
 
-inline void CrossSocket::initialisation()
+void CrossSocket::initialisation()
 {
 	//Not needed
 }
@@ -75,7 +75,6 @@ int CrossSocket::translateEnum(CSWL::SocketType typ)
     setError("ENUM translation (type) failed!!!");
     return -1;
 }
-
 
 
 
