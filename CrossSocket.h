@@ -17,6 +17,8 @@ namespace CSWL
 		short port;
 		Endpoint endpoint;
 
+		std::vector<Endpoint> possibleEndpoints;
+
 		void* winWSADATA;
 
 		int currentStateResult;

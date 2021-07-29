@@ -110,13 +110,13 @@ namespace CSWL
         if (this->behaviour == ServerOrClient::SERVER)
         {
             //Server
-            Endpoint entp = Resolver::resolveLocalServerAddress(this->port, *this);
+            possibleEndpoints = Resolver::resolveLocalServerAddresses(this->port, *this);
             if (!this->actionSuccess())
             {
-                //Error was seted by resolver.
+                //Error was set by resolver.
                 return;
             }
-            endpoint = entp;
+            endpoint = possibleEndpoints[0];
 
             SOCKET sock = socket(translateEnum(this->family), translateEnum(this->type), translateEnum(this->protocol));
             if (sock == INVALID_SOCKET) {
@@ -136,15 +136,13 @@ namespace CSWL
         else if (domainOrIp.length() > 0)
         {
             //Client
-            //Linker LNK2019 linking error unresolved extern symbol
-            std::vector<Endpoint> entps = Resolver::resolveAddresses(domainOrIp, this->port, *this);
+            possibleEndpoints = Resolver::resolveAddresses(domainOrIp, this->port, *this);
             if (!this->actionSuccess())
             {
-                //Error was seted by resolver.
+                //Error was set by resolver.
                 return;
             }
-            endpoint = entps[0];
-
+            endpoint = possibleEndpoints[0];
 
             SOCKET sock = socket(translateEnum(this->family), translateEnum(this->type), translateEnum(this->protocol));
             if (sock == INVALID_SOCKET)
@@ -173,38 +171,49 @@ namespace CSWL
         sockaddr sap;
         sockaddr_in6 sap6;
         bool useV6 = false;
+        for (int e = 0; e < possibleEndpoints.size(); e++)
+        {
+            if (endpoint.ip.getVersion() != IpVersion::IPv4)
+            {
+                useV6 = true;
+            }
+            char* rData = endpoint.ip.rawData();
+            if (useV6)
+            {
+                sap6.sin6_family = translateEnum(family);
+                char* storage = (char*)(sap6.sin6_addr.u.Byte);
+                for (int i = 0; i < 16; i++)
+                {
+                    storage[i] = rData[i];
+                }
+                currentStateResult = bind(socket, (SOCKADDR*)&sap6, sizeof(sockaddr_in6));
+            }
+            else
+            {
+                for (int trick = 0; trick < 14; trick++)
+                {
+                    sap.sa_data[trick] = rData[trick];
+                }
+                sap.sa_family = translateEnum(family);
+                currentStateResult = bind(socket, &sap, endpoint.ip.rawLength());
+            }
 
-        if (endpoint.ip.getVersion() != IpVersion::IPv4)
-        {
-            useV6 = true;
-        }
-        char* rData = endpoint.ip.rawData();
-        if (useV6)
-        {
-            sap6.sin6_family = translateEnum(family);
-            char* storage = (char*)(sap6.sin6_addr.u.Byte);
-            for (int i = 0; i < 16; i++)
+            if (currentStateResult == SOCKET_ERROR || e+1 == possibleEndpoints.size())
             {
-                storage[i] = rData[i];
+                int errCode = WSAGetLastError();
+                if (e + 1 < possibleEndpoints.size())
+                {
+                    if (errCode == 10049 || errCode == 10048)
+                    {
+                        // Not available or in use
+                        continue;
+                    }
+                }
+                std::string err = "bind failed with error: ";
+                err += std::to_string(errCode);
+                setError(err);
+                return;
             }
-            currentStateResult = bind(socket, (SOCKADDR*)&sap6, sizeof(sockaddr_in6));
-        }
-        else
-        {
-            for (int trick = 0; trick < 14; trick++)
-            {
-                sap.sa_data[trick] = rData[trick];
-            }
-            sap.sa_family = translateEnum(family);
-            currentStateResult = bind(socket, &sap, endpoint.ip.rawLength());
-        }
-        
-        if (currentStateResult == SOCKET_ERROR)
-        {
-            std::string err = "bind failed with error: ";
-            err += std::to_string(WSAGetLastError());
-            setError(err);
-            return;
         }
     }
     void CrossSocket::listenCS()
