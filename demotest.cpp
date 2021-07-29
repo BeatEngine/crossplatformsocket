@@ -12,14 +12,14 @@ int main()
 		printf("Error in class IpAddress toString() has wrong format!");
 	}
 
-	CSWL::CrossSocket socket = CSWL::CrossSocket(CSWL::ServerOrClient::SERVER, 8080, CSWL::AddressFamily::CS_AF_INET, CSWL::SocketType::CS_SOCK_STREAM, CSWL::IpProtocol::CS_IPPROTO_TCP);
+	CSWL::CrossSocket socket = CSWL::CrossSocket(CSWL::ServerOrClient::SERVER, 8080, CSWL::AddressFamily::CS_AF_INET6, CSWL::SocketType::CS_SOCK_STREAM, CSWL::IpProtocol::CS_IPPROTO_TCP);
 	if (!socket.actionSuccess())
 	{
 		printf("Error creating Socket: %s\n", socket.lastError().c_str());
 	}
 
 	CSWL::Endpoint endpoint = socket.getEntpoint();
-	printf("Endpoint of My socket: %s", endpoint.toString().c_str());
+	printf("Endpoint of My socket: %s\n", endpoint.toString().c_str());
 
 	CSWL::CrossSocket client = socket.acceptCS();
 	if (!socket.actionSuccess())
@@ -28,7 +28,7 @@ int main()
 	}
 
 
-	printf("Endpoint of Client socket: %s", client.getEntpoint().toString().c_str());
+	printf("Endpoint of Client socket: %s\n", client.getEntpoint().toString().c_str());
 
 
 

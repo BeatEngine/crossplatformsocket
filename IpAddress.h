@@ -73,8 +73,12 @@ namespace CSWL
 		bool setBinaryData(char* data, int dataLength, IpVersion version)
 		{
 			this->version = version;
-			if (dataLength < 17 && data != 0 && dataLength > 0)
+			if (data != 0 && dataLength > 0)
 			{
+				if (dataLength > 16)
+				{
+					dataLength = 16;
+				}
 				for (int i = 0; i < dataLength; i++)
 				{
 					addressData[i] = data[i];

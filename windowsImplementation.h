@@ -168,8 +168,20 @@ namespace CSWL
     void CrossSocket::bindCS()
     {
         //WARNING LOOK FOR CHANGES IN MICROSOFT WINDOWS API WINSOCK2
+        //WARNING IPV4 use different structs than IPV6 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         SOCKET socket = crsSocket;
         sockaddr sap;
+        bool useV6 = false;
+
+        if (endpoint.ip.getVersion() == IpVersion::IPv4)
+        {
+
+        }
+        else
+        {
+            useV6 = true;
+        }
+
         char* rData = endpoint.ip.rawData();
         for (int trick = 0; trick < 14; trick++)
         {
@@ -202,10 +214,24 @@ namespace CSWL
     CrossSocket CrossSocket::acceptCS()
     {
         SOCKET socket = crsSocket;
-
-        sockaddr clientAddr;
+        sockaddr_in  clientAddr4;
+        sockaddr_in6_w2ksp1 clientAddr6;
         int adrLength = 0;
-        SOCKET client = accept(socket, &clientAddr, &adrLength);
+        bool useV6 = false;
+        //WARNING IPV4 use different structs than IPV6 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        SOCKET client;
+        if (endpoint.ip.getVersion() == IpVersion::IPv4)
+        {
+            adrLength = sizeof(clientAddr4);
+            client = accept(socket, (SOCKADDR*)&clientAddr4, &adrLength);
+        }
+        else
+        {
+            adrLength = sizeof(clientAddr6);
+            client = accept(socket, (SOCKADDR*)&clientAddr6, &adrLength);
+            useV6 = true;
+        }
+
         if (client == INVALID_SOCKET)
         {
             std::string err = "accept failed with error: ";
@@ -216,13 +242,16 @@ namespace CSWL
         Endpoint endp;
 
         IpVersion clientIpVersion = IpVersion::IPv4;
-
-        if (clientAddr.sa_family == translateEnum(AddressFamily::CS_AF_INET6))
+        if (useV6)
         {
             clientIpVersion = IpVersion::IPv6;
+            endp.ip.setBinaryData((char*)&(clientAddr6.sin6_addr.u.Byte), 16, clientIpVersion);
         }
-
-        endp.ip.setBinaryData(clientAddr.sa_data, adrLength, clientIpVersion);
+        else
+        {
+            endp.ip.setBinaryData((char*)&(clientAddr4.sin_addr.S_un.S_addr), sizeof(ULONG), clientIpVersion);
+        }
+        
         endp.port = port;
         
         return CrossSocket(CSWL::ServerOrClient::CLIENT, port, family, type, protocol, endp);
