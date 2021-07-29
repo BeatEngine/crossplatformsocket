@@ -34,7 +34,8 @@ namespace CSWL
 	{
 		IpVersion version;
 		//Contains V4 or V6
-		unsigned char addressData[16];
+		unsigned char addressData[16] = { 0 };
+
 	public:
 
 		IpAddress()
@@ -43,8 +44,9 @@ namespace CSWL
 			version = IPv4;
 		}
 
+		///
 		/**
-		*	@Param commonIpRepresentation 254.254.254.254 or aaaa:bbbb:cccc  ...-->
+		*	Param commonIpRepresentation 254.254.254.254 or aaaa:bbbb:cccc  ...-->
 		*
 		*/
 		IpAddress(std::string& commonIpRepresentation)
@@ -148,9 +150,9 @@ namespace CSWL
 			return true;
 		}
 
-
+		///
 		/**
-		* @Return String representation of Ip (v4 ^ v6)
+		* Return String representation of Ip (v4 ^ v6)
 		*/
 		std::string toString()
 		{
@@ -187,6 +189,21 @@ namespace CSWL
 				}
 			}
 			return result;
+		}
+
+		IpVersion getVersion()
+		{
+			return version;
+		}
+
+		int rawLength()
+		{
+			return 16;
+		}
+
+		char* rawData()
+		{
+			return (char*)(addressData);
 		}
 
 	};

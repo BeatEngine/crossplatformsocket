@@ -10,7 +10,7 @@
 #include <process.h>
 #endif
 
-
+///
 /**
 * Crossplatform Windows Linux run thread function and join
 * Use pointers in ParameterObject for thread control like exit flags

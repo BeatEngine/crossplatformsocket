@@ -127,7 +127,11 @@ namespace CSWL
                 return;
             }
             crsSocket = sock;
-
+            bindCS();
+            if (actionSuccess())
+            {
+                listenCS();
+            }
         }
         else if (domainOrIp.length() > 0)
         {
@@ -143,8 +147,8 @@ namespace CSWL
 
 
             SOCKET sock = socket(translateEnum(this->family), translateEnum(this->type), translateEnum(this->protocol));
-            if (sock == INVALID_SOCKET) {
-
+            if (sock == INVALID_SOCKET)
+            {
                 std::string err = "create socket result: ";
                 err += std::to_string(WSAGetLastError());
                 setError(err);
@@ -159,40 +163,89 @@ namespace CSWL
         }
     }
 
-    int CrossSocket::connect()
+    
+
+    void CrossSocket::bindCS()
+    {
+        //WARNING LOOK FOR CHANGES IN MICROSOFT WINDOWS API WINSOCK2
+        SOCKET socket = crsSocket;
+        sockaddr sap;
+        char* rData = endpoint.ip.rawData();
+        for (int trick = 0; trick < 14; trick++)
+        {
+            sap.sa_data[trick] = rData[trick];
+        }
+        sap.sa_family = translateEnum(family);
+        currentStateResult = bind(socket, &sap, endpoint.ip.rawLength());
+        if (currentStateResult == SOCKET_ERROR)
+        {
+            std::string err = "bind failed with error: ";
+            err += std::to_string(WSAGetLastError());
+            setError(err);
+            return;
+        }
+    }
+    void CrossSocket::listenCS()
+    {
+        SOCKET socket = crsSocket;
+        currentStateResult = listen(socket, SOMAXCONN);
+        if (currentStateResult == SOCKET_ERROR)
+        {
+            std::string err = "listen failed with error: ";
+            err += std::to_string(WSAGetLastError());
+            setError(err);
+            return;
+        }
+    }
+
+
+    CrossSocket CrossSocket::acceptCS()
+    {
+        SOCKET socket = crsSocket;
+
+        sockaddr clientAddr;
+        int adrLength = 0;
+        SOCKET client = accept(socket, &clientAddr, &adrLength);
+        if (client == INVALID_SOCKET)
+        {
+            std::string err = "accept failed with error: ";
+            err += std::to_string(WSAGetLastError());
+            setError(err);
+            return CrossSocket(err);
+        }
+        Endpoint endp;
+
+        IpVersion clientIpVersion = IpVersion::IPv4;
+
+        if (clientAddr.sa_family == translateEnum(AddressFamily::CS_AF_INET6))
+        {
+            clientIpVersion = IpVersion::IPv6;
+        }
+
+        endp.ip.setBinaryData(clientAddr.sa_data, adrLength, clientIpVersion);
+        endp.port = port;
+        
+        return CrossSocket(CSWL::ServerOrClient::CLIENT, port, family, type, protocol, endp);
+    }
+
+    int CrossSocket::connectCS()
     {
         return 0;
     }
 
-    int CrossSocket::bind()
-    {
-        return 0;
-
-    }
-    int CrossSocket::listen()
-    {
-        return 0;
-
-    }
-    int CrossSocket::accept()
+    int CrossSocket::receiveCS()
     {
         return 0;
 
     }
 
-    int CrossSocket::receive()
+    int CrossSocket::sendCS()
     {
         return 0;
 
     }
 
-    int CrossSocket::send()
-    {
-        return 0;
-
-    }
-
-    int CrossSocket::shutdown()
+    int CrossSocket::shutdownCS()
     {
         return 0;
 

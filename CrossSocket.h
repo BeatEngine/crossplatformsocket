@@ -27,6 +27,9 @@ namespace CSWL
 
 		void createSocket(std::string domainOrIp = "");
 
+		void bindCS();
+		void listenCS();
+
 
 
 		uintptr_t crsSocket;
@@ -43,18 +46,17 @@ namespace CSWL
 			currentError = error;
 		}
 
-		int connect();
+		int connectCS();
 
-		int bind();
-		int listen();
-		int accept();
+		CrossSocket acceptCS();
 
-		int receive();
+		int receiveCS();
 
-		int send();
+		int sendCS();
 
-		int shutdown();
+		int shutdownCS();
 
+		///
 		/**
 		* @Return true if no error
 		*/
@@ -63,6 +65,7 @@ namespace CSWL
 			return currentError.size() == 0;
 		}
 
+		///
 		/*
 		* @Return last Error message.
 		*/
@@ -71,12 +74,22 @@ namespace CSWL
 			return currentError;
 		}
 
+		///
 		/**
 		* Delete last Error
 		*/
 		void unsetError()
 		{
 			currentError = "";
+		}
+
+		CrossSocket(std::string error)
+		{
+			currentError = error;
+			if (currentError.empty())
+			{
+				currentError = "ERROR NOT SET";
+			}
 		}
 
 		CrossSocket(ServerOrClient behaviour, short port, AddressFamily family, SocketType type, IpProtocol protocol)
@@ -97,6 +110,15 @@ namespace CSWL
 			}
 		}
 
+		/// <summary>
+		/// For Client socket
+		/// </summary>
+		/// <param name="behaviour"></param>
+		/// <param name="port"></param>
+		/// <param name="family"></param>
+		/// <param name="type"></param>
+		/// <param name="protocol"></param>
+		/// <param name="domainOrDottedIp"></param>
 		CrossSocket(ServerOrClient behaviour, short port, AddressFamily family, SocketType type, IpProtocol protocol, std::string domainOrDottedIp)
 		{
 			crsSocket = 0;
@@ -113,6 +135,51 @@ namespace CSWL
 			{
 				createSocket(domainOrDottedIp);
 			}
+		}
+
+		/// <summary>
+		/// For Server accept Client construction.
+		/// </summary>
+		/// <param name="behaviour"></param>
+		/// <param name="port"></param>
+		/// <param name="family"></param>
+		/// <param name="type"></param>
+		/// <param name="protocol"></param>
+		CrossSocket(ServerOrClient behaviour, short port, AddressFamily family, SocketType type, IpProtocol protocol, Endpoint endpoint)
+		{
+			crsSocket = 0;
+			currentStateResult = 0;
+			winWSADATA = 0;
+			currentError = "";
+			this->port = port;
+			this->behaviour = behaviour;
+			this->family = family;
+			this->type = type;
+			this->protocol = protocol;
+			this->endpoint = endpoint;
+			initialisation();
+		}
+
+		CrossSocket(const CrossSocket& other)
+		{
+			*this = other;
+		}
+
+		CrossSocket& operator=(const CrossSocket& other)
+		{
+			this->behaviour = other.behaviour;
+			this->crsSocket = other.crsSocket;
+			this->currentError = other.currentError;
+			this->currentStateResult = other.currentStateResult;
+			this->endpoint = other.endpoint;
+			this->family = other.family;
+			this->port = other.port;
+			this->protocol = other.protocol;
+			this->type = other.type;
+
+			this->winWSADATA = other.winWSADATA;
+
+			return *this;
 		}
 
 		~CrossSocket()

@@ -1,17 +1,17 @@
 namespace CSWL
 {
-	/*
+	
 	Endpoint Resolver::resolveLocalServerAddress(short port, CrossSocket& socket)
 	{
-		Endpoint endpoint;
+		//todo implementing
 
 
 	}
 
-	std::vector<Endpoint> resolveAddresses(std::string domainOrDottedIp, short port, CrossSocket& socket)
+	std::vector<Endpoint> Resolver::resolveAddresses(std::string domainOrDottedIp, short port, CrossSocket& socket)
 	{
-		Endpoint endpoint;
+		//todo implementing
 	}
-	*/
+	
 	
 }

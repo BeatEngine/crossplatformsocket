@@ -19,12 +19,13 @@
 
 #pragma comment (lib, "Ws2_32.lib")
 #pragma comment (lib, "Mswsock.lib")
-#pragma comment (lib, "AdvApi32.lib")
+//Maybe later
+//#pragma comment (lib, "AdvApi32.lib")
 #endif
 
 
-
-#include "WLthread.h"
+//Maybe for integration of thread usage
+//#include "WLthread.h"
 #include "Endpoint.h"
 #include "Resolver.h"
 
