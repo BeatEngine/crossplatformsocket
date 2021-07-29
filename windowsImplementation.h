@@ -171,24 +171,34 @@ namespace CSWL
         //WARNING IPV4 use different structs than IPV6 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         SOCKET socket = crsSocket;
         sockaddr sap;
+        sockaddr_in6 sap6;
         bool useV6 = false;
 
-        if (endpoint.ip.getVersion() == IpVersion::IPv4)
-        {
-
-        }
-        else
+        if (endpoint.ip.getVersion() != IpVersion::IPv4)
         {
             useV6 = true;
         }
-
         char* rData = endpoint.ip.rawData();
-        for (int trick = 0; trick < 14; trick++)
+        if (useV6)
         {
-            sap.sa_data[trick] = rData[trick];
+            sap6.sin6_family = translateEnum(family);
+            char* storage = (char*)(sap6.sin6_addr.u.Byte);
+            for (int i = 0; i < 16; i++)
+            {
+                storage[i] = rData[i];
+            }
+            currentStateResult = bind(socket, (SOCKADDR*)&sap6, sizeof(sockaddr_in6));
         }
-        sap.sa_family = translateEnum(family);
-        currentStateResult = bind(socket, &sap, endpoint.ip.rawLength());
+        else
+        {
+            for (int trick = 0; trick < 14; trick++)
+            {
+                sap.sa_data[trick] = rData[trick];
+            }
+            sap.sa_family = translateEnum(family);
+            currentStateResult = bind(socket, &sap, endpoint.ip.rawLength());
+        }
+        
         if (currentStateResult == SOCKET_ERROR)
         {
             std::string err = "bind failed with error: ";
@@ -215,7 +225,7 @@ namespace CSWL
     {
         SOCKET socket = crsSocket;
         sockaddr_in  clientAddr4;
-        sockaddr_in6_w2ksp1 clientAddr6;
+        sockaddr_in6 clientAddr6;
         int adrLength = 0;
         bool useV6 = false;
         //WARNING IPV4 use different structs than IPV6 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
