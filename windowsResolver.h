@@ -13,7 +13,7 @@ namespace CSWL
 		hints.ai_flags = AI_PASSIVE;
 		char tmpPort[7];
 		sprintf(tmpPort, "%d", port);
-		int iResult = getaddrinfo("", tmpPort, &hints, &result);
+		int iResult = getaddrinfo(0, tmpPort, &hints, &result);
 		if (iResult != 0)
 		{
 			std::string err = "getaddrinfo failed with error: ";

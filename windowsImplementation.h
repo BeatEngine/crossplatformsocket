@@ -168,7 +168,7 @@ namespace CSWL
         //WARNING LOOK FOR CHANGES IN MICROSOFT WINDOWS API WINSOCK2
         //WARNING IPV4 use different structs than IPV6 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         SOCKET socket = crsSocket;
-        sockaddr sap;
+        sockaddr sap; // sockaddr_in not working in the way I have tried.
         sockaddr_in6 sap6;
         bool useV6 = false;
         for (int e = 0; e < possibleEndpoints.size(); e++)
@@ -181,12 +181,12 @@ namespace CSWL
             if (useV6)
             {
                 sap6.sin6_family = translateEnum(family);
-                char* storage = (char*)(sap6.sin6_addr.u.Byte);
+                sap6.sin6_port = port;
                 for (int i = 0; i < 16; i++)
                 {
-                    storage[i] = rData[i];
+                    sap6.sin6_addr.u.Byte[i] = rData[i];
                 }
-                currentStateResult = bind(socket, (SOCKADDR*)&sap6, sizeof(sockaddr_in6));
+                currentStateResult = bind(socket, (SOCKADDR*)&sap6, sizeof(sap6));
             }
             else
             {
@@ -198,7 +198,7 @@ namespace CSWL
                 currentStateResult = bind(socket, &sap, endpoint.ip.rawLength());
             }
 
-            if (currentStateResult == SOCKET_ERROR || e+1 == possibleEndpoints.size())
+            if (currentStateResult == SOCKET_ERROR)
             {
                 int errCode = WSAGetLastError();
                 if (e + 1 < possibleEndpoints.size())
@@ -268,12 +268,12 @@ namespace CSWL
         }
         else
         {
-            endp.ip.setBinaryData((char*)&(clientAddr4.sin_addr.S_un.S_addr), sizeof(ULONG), clientIpVersion);
+            endp.ip.setBinaryData((char*)&(clientAddr4.sin_addr.S_un.S_addr), sizeof(clientAddr4.sin_addr.S_un), clientIpVersion);
         }
         
         endp.port = port;
         
-        return CrossSocket(CSWL::ServerOrClient::CLIENT, port, family, type, protocol, endp);
+        return CrossSocket(CSWL::ServerOrClient::CLIENT, port, family, type, protocol, endp, client);
     }
 
     int CrossSocket::connectCS()
@@ -281,16 +281,59 @@ namespace CSWL
         return 0;
     }
 
-    int CrossSocket::receiveCS()
+    int CrossSocket::receiveCS(unsigned char* buffer, int bufferSize)
     {
-        return 0;
+        if (buffer == 0 || bufferSize < 1)
+        {
+            if (buffer == 0)
+            {
+                setError("receive buffer is null.");
+            }
+            else
+            {
+                setError("receive buffer size less 1.");
+            }
+            return 0;
+        }
+        char* buff = (char*)buffer;
+        SOCKET clientSocket = crsSocket;
+        currentStateResult = recv(clientSocket, buff, bufferSize, 0);
+        if (currentStateResult < 0)
+        {
+            std::string err = "receive failed with error: ";
+            err += std::to_string(WSAGetLastError());
+            setError(err);
+            return 0;
+        }
+        return currentStateResult;
 
     }
 
-    int CrossSocket::sendCS()
+    int CrossSocket::sendCS(const unsigned char* buffer, int bufferSize)
     {
-        return 0;
-
+        if (buffer == 0 || bufferSize < 1)
+        {
+            if (buffer == 0)
+            {
+                setError("send buffer is null.");
+            }
+            else
+            {
+                setError("send buffer size less 1.");
+            }
+            return 0;
+        }
+        const char* buff = (const char*)buffer;
+        SOCKET clientSocket = crsSocket;
+        currentStateResult = send(clientSocket, buff, bufferSize, 0);
+        if (currentStateResult == SOCKET_ERROR)
+        {
+            std::string err = "send failed with error: ";
+            err += std::to_string(WSAGetLastError());
+            setError(err);
+            return 0;
+        }
+        return currentStateResult;
     }
 
     int CrossSocket::shutdownCS()

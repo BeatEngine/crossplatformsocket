@@ -52,9 +52,15 @@ namespace CSWL
 
 		CrossSocket acceptCS();
 
-		int receiveCS();
+		/// <summary>
+		/// Receive data and store into buffer
+		/// </summary>
+		/// <param name="buffer"></param>
+		/// <param name="bufferSize"></param>
+		/// <returns>Size received in bytes</returns>
+		int receiveCS(unsigned char* buffer, int bufferSize);
 
-		int sendCS();
+		int sendCS(const unsigned char* buffer, int bufferSize);
 
 		int shutdownCS();
 
@@ -147,9 +153,9 @@ namespace CSWL
 		/// <param name="family"></param>
 		/// <param name="type"></param>
 		/// <param name="protocol"></param>
-		CrossSocket(ServerOrClient behaviour, short port, AddressFamily family, SocketType type, IpProtocol protocol, Endpoint endpoint)
+		CrossSocket(ServerOrClient behaviour, short port, AddressFamily family, SocketType type, IpProtocol protocol, Endpoint endpoint, uintptr_t acceptedSocketHandle)
 		{
-			crsSocket = 0;
+			crsSocket = acceptedSocketHandle;
 			currentStateResult = 0;
 			winWSADATA = 0;
 			currentError = "";
