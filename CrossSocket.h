@@ -48,7 +48,14 @@ namespace CSWL
 			currentError = error;
 		}
 
-		int connectCS();
+		/// <summary>
+		/// Connect to domain or formatted IP V4 "192.168.178.77" or V6 "aaaa:bbbb:cccc:7777:...."
+		/// </summary>
+		/// <param name="domainOrIp">"192.168.178.77" or "aaaa:bbbb:cccc:7777:...."</param>
+		/// <returns>actionSuccess()</returns>
+		bool connectCS(std::string domainOrIp, bool directDNS = false);
+
+		bool connectCS(IpAddress address);
 
 		CrossSocket acceptCS();
 

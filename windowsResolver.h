@@ -58,7 +58,7 @@ namespace CSWL
 		hints.ai_family = socket.translateEnum(socket.getFamlily());
 		hints.ai_socktype = socket.translateEnum(socket.getSocketType());
 		hints.ai_protocol = socket.translateEnum(socket.getProtocol());
-		hints.ai_flags = AI_V4MAPPED | AI_ALL;
+		//hints.ai_flags = AI_ALL;
 		char tmpPort[7];
 		sprintf(tmpPort, "%d", port);
 
@@ -103,4 +103,6 @@ namespace CSWL
 	
 
 }
+
+//...
 

@@ -12,12 +12,9 @@ namespace CSWL
 
 		static std::vector<Endpoint> resolveAddresses(std::string domainOrDottedIp, short port, CrossSocket& socket);
 
-
-
-
 	};
 
 
 }
 
-
+//...

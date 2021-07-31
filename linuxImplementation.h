@@ -78,4 +78,4 @@ int CrossSocket::translateEnum(CSWL::SocketType typ)
 
 
 
-
+//...

@@ -103,10 +103,12 @@ namespace CSWL
         return -1;
     }
 
+    /// <summary>
+    /// Create a socket
+    /// </summary>
+    /// <param name="domainOrIp">Connect directly if not empty.</param>
     void CrossSocket::createSocket(std::string domainOrIp)
     {
-
-
         if (this->behaviour == ServerOrClient::SERVER)
         {
             //Server
@@ -133,17 +135,9 @@ namespace CSWL
                 listenCS();
             }
         }
-        else if (domainOrIp.length() > 0)
+        else
         {
             //Client
-            possibleEndpoints = Resolver::resolveAddresses(domainOrIp, this->port, *this);
-            if (!this->actionSuccess())
-            {
-                //Error was set by resolver.
-                return;
-            }
-            endpoint = possibleEndpoints[0];
-
             SOCKET sock = socket(translateEnum(this->family), translateEnum(this->type), translateEnum(this->protocol));
             if (sock == INVALID_SOCKET)
             {
@@ -153,11 +147,11 @@ namespace CSWL
                 return;
             }
             crsSocket = sock;
-        }
-        else
-        {
-            std::string err = "tried to create a clientsocket without or empty aim (domain / dotted ip).";
-            setError(err);
+            if (domainOrIp.length() > 0)
+            {
+                //This sets error on fail.
+                connectCS(domainOrIp);
+            }
         }
     }
 
@@ -276,9 +270,100 @@ namespace CSWL
         return CrossSocket(CSWL::ServerOrClient::CLIENT, port, family, type, protocol, endp, client);
     }
 
-    int CrossSocket::connectCS()
+    bool CrossSocket::connectCS(std::string domainOrIp, bool directDNS)
     {
-        return 0;
+        possibleEndpoints = Resolver::resolveAddresses(domainOrIp, this->port, *this);
+        if (!this->actionSuccess())
+        {
+            //Error was set by resolver.
+            return false;
+        }
+        SOCKET client = crsSocket;
+        sockaddr conAddrV4;
+        sockaddr_in6 conAddrV6;
+        for (int i = 0; i < possibleEndpoints.size(); i++)
+        {
+            Endpoint endpt = possibleEndpoints[i];
+            char* rawAddr = endpt.ip.rawData();
+
+            if (endpt.ip.getVersion() == IpVersion::IPv6)
+            {
+                conAddrV6.sin6_family = translateEnum(family);
+                conAddrV6.sin6_port = endpt.port;
+                for (int r = 0; r < 16; r++)
+                {
+                    conAddrV6.sin6_addr.u.Byte[r] = rawAddr[r];
+                }
+                currentStateResult = connect(client, (SOCKADDR*)&conAddrV6, sizeof(conAddrV6.sin6_addr));
+            }
+            else
+            {
+                conAddrV4.sa_family = translateEnum(family);
+                for (int r = 0; r < 14; r++)
+                {
+                    conAddrV4.sa_data[r] = rawAddr[r];
+                }
+                currentStateResult = connect(client, &conAddrV4, sizeof(conAddrV4));
+            }
+
+            if (currentStateResult == SOCKET_ERROR) {
+                if (i + 1 < possibleEndpoints.size())
+                {
+                    continue;
+                }
+                else
+                {
+                    std::string err = "connect failed with error: ";
+                    err += std::to_string(WSAGetLastError());
+                    setError(err);
+                    return false;
+                }
+            }
+            endpoint = endpt;
+            break;
+        }
+        return true;
+    }
+
+    bool CrossSocket::connectCS(IpAddress address)
+    {
+        SOCKET client = crsSocket;
+        sockaddr conAddrV4;
+        sockaddr_in6 conAddrV6;
+        Endpoint endpt;
+        endpt.ip = address;
+        endpt.port = port;
+        char* rawAddr = endpt.ip.rawData();
+
+        if (endpt.ip.getVersion() == IpVersion::IPv6)
+        {
+            conAddrV6.sin6_family = translateEnum(family);
+            conAddrV6.sin6_port = endpt.port;
+            for (int r = 0; r < 16; r++)
+            {
+                conAddrV6.sin6_addr.u.Byte[r] = rawAddr[r];
+            }
+            currentStateResult = connect(client, (SOCKADDR*)&conAddrV6, sizeof(conAddrV6.sin6_addr));
+        }
+        else
+        {
+            conAddrV4.sa_family = translateEnum(family);
+            for (int r = 0; r < 14; r++)
+            {
+                conAddrV4.sa_data[r] = rawAddr[r];
+            }
+            currentStateResult = connect(client, &conAddrV4, sizeof(conAddrV4));
+        }
+
+        if (currentStateResult == SOCKET_ERROR)
+        {
+            std::string err = "connect failed with error: ";
+            err += std::to_string(WSAGetLastError());
+            setError(err);
+            return false;
+        }
+        endpoint = endpt;
+        return true;
     }
 
     int CrossSocket::receiveCS(unsigned char* buffer, int bufferSize)
@@ -344,3 +429,5 @@ namespace CSWL
 
 
 }
+
+//...
