@@ -1,15 +1,26 @@
+#include <vector>
+
 #ifdef __linux__ 
 #include <unistd.h>
 #include <sys/types.h> 
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
+
+#include <netdb.h>
+
+#include <stdio.h>
+#include <string.h>
+#define SOCKET int
+#define INVALID_SOCKET -1
+#define WSAGetLastError() errno
+#define SOCKET_ERROR 0
+#define SOCKADDR sockaddr
 #else
 #define _CRT_SECURE_NO_WARNINGS
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif
-
-#include <vector>
 
 #include <windows.h>
 #include <winsock2.h>
