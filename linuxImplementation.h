@@ -8,11 +8,10 @@ namespace CSWL
 
     void CrossSocket::deconstruction()
     {
-        //todo close socket is missing!!!!!!!!!!!!!!!!!!!!!!!!!
-        /*if (crsSocket)
+        if (crsSocket)
         {
-            closesocket(crsSocket);
-        }*/
+            close(crsSocket);
+        }
     }
 
     int CrossSocket::translateEnum(CSWL::AddressFamily fam)
@@ -451,3 +450,6 @@ namespace CSWL
 
     }
 }
+
+//....
+
