@@ -1,3 +1,6 @@
+#ifdef _MSC_VER
+#define _CRT_SECURE_NO_WARNINGS 1
+#endif
 
 #include "crossSocketIncludes.h"
 
@@ -27,12 +30,30 @@ namespace CSWL
 		void initialisation();
 		void deconstruction();
 
+		int receiveTimeoutMilli = 800;
+
 		void createSocket(std::string domainOrIp = "");
 
 		void bindCS();
 		void listenCS();
 
+		//void* contextTLS = 0;
+		/*void initialiseTLS(CSWL::ServerOrClient type)
+		{
+			if (useTLS)
+			{
+				
+			}
+		}
+		bool useTLS = false;
+		void deconstructTLS()
+		{
+			if (useTLS)
+			{
 
+
+			}
+		}*/
 
 		uintptr_t crsSocket;
 
@@ -107,17 +128,19 @@ namespace CSWL
 			}
 		}
 
-		CrossSocket(ServerOrClient behaviour, short port, AddressFamily family, SocketType type, IpProtocol protocol)
+		CrossSocket(ServerOrClient behaviour, short port, AddressFamily family, SocketType type, IpProtocol protocol, int receiveTimeoutMilli = 800)
 		{
 			crsSocket = 0;
 			currentStateResult = 0;
 			winWSADATA = 0;
 			currentError = "";
+			this->receiveTimeoutMilli = receiveTimeoutMilli;
 			this->port = port;
 			this->behaviour = behaviour;
 			this->family = family;
 			this->type = type;
 			this->protocol = protocol;
+			//initialiseTLS(behaviour);
 			initialisation();
 			if (actionSuccess())
 			{
@@ -145,6 +168,7 @@ namespace CSWL
 			this->family = family;
 			this->type = type;
 			this->protocol = protocol;
+			//initialiseTLS(behaviour);
 			initialisation();
 			if (actionSuccess())
 			{
@@ -172,6 +196,7 @@ namespace CSWL
 			this->type = type;
 			this->protocol = protocol;
 			this->endpoint = endpoint;
+			//initialiseTLS(behaviour);
 			initialisation();
 		}
 
@@ -192,6 +217,21 @@ namespace CSWL
 			this->protocol = other.protocol;
 			this->type = other.type;
 
+			/*if (contextTLS != 0)
+			{
+				free(contextTLS);
+			}*/
+			//todo allocate and copy specific structure into contextTLS
+			/*if (other.behaviour == CSWL::ServerOrClient::SERVER)
+			{
+
+			}
+			else
+			{
+
+			}*/
+			
+
 			this->winWSADATA = other.winWSADATA;
 
 			return *this;
@@ -199,6 +239,7 @@ namespace CSWL
 
 		~CrossSocket()
 		{
+			//deconstructTLS();
 			deconstruction();
 		}
 
@@ -221,8 +262,6 @@ namespace CSWL
 		{
 			return endpoint;
 		}
-
-
 
 	};
 

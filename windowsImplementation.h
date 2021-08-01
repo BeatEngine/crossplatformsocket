@@ -128,6 +128,27 @@ namespace CSWL
                 setError(err);
                 return;
             }
+
+            int timeout = receiveTimeoutMilli;
+
+            if (setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeout, sizeof(timeout)) < 0)
+            {
+                std::string err = "set socket option: ";
+                err += std::to_string(WSAGetLastError());
+                setError(err);
+                return;
+            }
+
+            const char y = 1;
+            if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &y, sizeof(char)) < 0)
+            {
+                std::string err = "set socket option: ";
+                err += std::to_string(WSAGetLastError());
+                setError(err);
+                return;
+            }
+
+
             crsSocket = sock;
             bindCS();
             if (actionSuccess())
@@ -233,24 +254,33 @@ namespace CSWL
         bool useV6 = false;
         //WARNING IPV4 use different structs than IPV6 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         SOCKET client;
-        if (endpoint.ip.getVersion() == IpVersion::IPv4)
+        while (true)
         {
-            adrLength = sizeof(clientAddr4);
-            client = accept(socket, (SOCKADDR*)&clientAddr4, &adrLength);
-        }
-        else
-        {
-            adrLength = sizeof(clientAddr6);
-            client = accept(socket, (SOCKADDR*)&clientAddr6, &adrLength);
-            useV6 = true;
-        }
+            if (endpoint.ip.getVersion() == IpVersion::IPv4)
+            {
+                adrLength = sizeof(clientAddr4);
+                client = accept(socket, (SOCKADDR*)&clientAddr4, &adrLength);
+            }
+            else
+            {
+                adrLength = sizeof(clientAddr6);
+                client = accept(socket, (SOCKADDR*)&clientAddr6, &adrLength);
+                useV6 = true;
+            }
 
-        if (client == INVALID_SOCKET)
-        {
-            std::string err = "accept failed with error: ";
-            err += std::to_string(WSAGetLastError());
-            setError(err);
-            return CrossSocket(err);
+            if (client == INVALID_SOCKET)
+            {
+                if (WSAGetLastError() == 10060)
+                {
+                    //timeout
+                    continue;
+                }
+                std::string err = "accept failed with error: ";
+                err += std::to_string(WSAGetLastError());
+                setError(err);
+                return CrossSocket(err);
+            }
+            break;
         }
         Endpoint endp;
 
@@ -306,7 +336,14 @@ namespace CSWL
                 currentStateResult = connect(client, &conAddrV4, sizeof(conAddrV4));
             }
 
-            if (currentStateResult == SOCKET_ERROR) {
+            if (currentStateResult == SOCKET_ERROR)
+            {
+                if (WSAGetLastError() == 10060)
+                {
+                    //timeout
+                    i--;
+                    continue;
+                }
                 if (i + 1 < possibleEndpoints.size())
                 {
                     continue;

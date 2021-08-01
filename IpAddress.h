@@ -1,6 +1,7 @@
 #include <string>
 namespace CSWL
 {
+
 	enum IpVersion
 	{
 		IPv4, IPv6

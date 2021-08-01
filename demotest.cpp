@@ -8,7 +8,7 @@ enum class CSWLDEMOMODE
 
 int main()
 {
-	CSWLDEMOMODE MODE = CSWLDEMOMODE::CLIENTIPV4;
+	CSWLDEMOMODE MODE = CSWLDEMOMODE::SERVERIPV4;
 	
 	if (MODE == CSWLDEMOMODE::SERVERIPV4)
 	{
@@ -19,12 +19,12 @@ int main()
 			printf("Error in class IpAddress toString() has wrong format!");
 		}
 
-		CSWL::CrossSocket socket = CSWL::CrossSocket(CSWL::ServerOrClient::SERVER, 80, CSWL::AddressFamily::CS_AF_INET, CSWL::SocketType::CS_SOCK_STREAM, CSWL::IpProtocol::CS_IPPROTO_TCP);
+		CSWL::CrossSocket socket = CSWL::CrossSocket(CSWL::ServerOrClient::SERVER, 80, CSWL::AddressFamily::CS_AF_INET, CSWL::SocketType::CS_SOCK_STREAM, CSWL::IpProtocol::CS_IPPROTO_TCP, 333);
 		if (!socket.actionSuccess())
 		{
 			printf("Error creating Socket: %s\n", socket.lastError().c_str());
 		}
-
+		
 		CSWL::Endpoint endpoint = socket.getEntpoint();
 		printf("Endpoint of My socket: %s\n", endpoint.toString().c_str());
 

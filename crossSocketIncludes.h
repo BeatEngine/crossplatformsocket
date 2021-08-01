@@ -17,7 +17,6 @@
 #define SOCKET_ERROR 0
 #define SOCKADDR sockaddr
 #else
-#define _CRT_SECURE_NO_WARNINGS
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif
@@ -34,6 +33,9 @@
 //#pragma comment (lib, "AdvApi32.lib")
 #endif
 
+//TLS for secure communication
+//
+//
 
 //Maybe for integration of thread usage
 //#include "WLthread.h"
