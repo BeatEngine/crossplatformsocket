@@ -19,9 +19,9 @@ int main()
 			printf("Error in class IpAddress toString() has wrong format!");
 		}
 
-		CSWL::SocketType socketType = CSWL::SocketType::CS_SOCK_DGRAM;
+		CSWL::SocketType socketType = CSWL::SocketType::CS_SOCK_STREAM;
 
-		CSWL::CrossSocket socket = CSWL::CrossSocket(CSWL::ServerOrClient::SERVER, 80, CSWL::AddressFamily::CS_AF_INET, socketType, CSWL::IpProtocol::CS_IPPROTO_UDP, 333);
+		CSWL::CrossSocket socket = CSWL::CrossSocket(CSWL::ServerOrClient::SERVER, 80, CSWL::AddressFamily::CS_AF_INET, socketType, CSWL::IpProtocol::CS_IPPROTO_TCP, 333);
 		if (!socket.actionSuccess())
 		{
 			printf("Error creating Socket: %s\n", socket.lastError().c_str());
