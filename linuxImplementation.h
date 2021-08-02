@@ -130,7 +130,7 @@ namespace CSWL
             crsSocket = sock;
             
             bindCS();
-            if (actionSuccess())
+            if (actionSuccess() && type == CSWL::SocketType::CS_SOCK_STREAM)
             {
                 listenCS();
             }
@@ -147,7 +147,7 @@ namespace CSWL
                 return;
             }
             crsSocket = sock;
-            if (domainOrIp.length() > 0)
+            if (domainOrIp.length() > 0 && type == CSWL::SocketType::CS_SOCK_STREAM)
             {
                 //This sets error on fail.
                 connectCS(domainOrIp);
@@ -390,6 +390,7 @@ namespace CSWL
 
     int CrossSocket::receiveCS(unsigned char* buffer, int bufferSize)
     {
+        currentTimeout = false;
         if (buffer == 0 || bufferSize < 1)
         {
             if (buffer == 0)
@@ -409,7 +410,12 @@ namespace CSWL
         if (currentStateResult < 0)
         {
             std::string err = "receive failed with error: ";
-            err += std::to_string(WSAGetLastError());
+            int errCode = WSAGetLastError();
+            err += std::to_string(errCode);
+            if (errCode == 11)
+            {
+                currentTimeout = true;
+            }
             setError(err);
             return 0;
         }

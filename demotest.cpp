@@ -8,7 +8,7 @@ enum class CSWLDEMOMODE
 
 int main()
 {
-	CSWLDEMOMODE MODE = CSWLDEMOMODE::SERVERIPV4;
+	CSWLDEMOMODE MODE = CSWLDEMOMODE::CLIENTIPV4;
 	
 	if (MODE == CSWLDEMOMODE::SERVERIPV4)
 	{
@@ -19,7 +19,9 @@ int main()
 			printf("Error in class IpAddress toString() has wrong format!");
 		}
 
-		CSWL::CrossSocket socket = CSWL::CrossSocket(CSWL::ServerOrClient::SERVER, 80, CSWL::AddressFamily::CS_AF_INET, CSWL::SocketType::CS_SOCK_STREAM, CSWL::IpProtocol::CS_IPPROTO_TCP, 333);
+		CSWL::SocketType socketType = CSWL::SocketType::CS_SOCK_DGRAM;
+
+		CSWL::CrossSocket socket = CSWL::CrossSocket(CSWL::ServerOrClient::SERVER, 80, CSWL::AddressFamily::CS_AF_INET, socketType, CSWL::IpProtocol::CS_IPPROTO_UDP, 333);
 		if (!socket.actionSuccess())
 		{
 			printf("Error creating Socket: %s\n", socket.lastError().c_str());
@@ -28,12 +30,17 @@ int main()
 		CSWL::Endpoint endpoint = socket.getEntpoint();
 		printf("Endpoint of My socket: %s\n", endpoint.toString().c_str());
 
-		CSWL::CrossSocket client = socket.acceptCS();
-		if (!socket.actionSuccess())
+
+		CSWL::CrossSocket client = socket;
+		if (socketType == CSWL::SocketType::CS_SOCK_STREAM)
 		{
-			printf("Error accepting client Socket: %s\n", socket.lastError().c_str());
+			CSWL::CrossSocket client = socket.acceptCS();
+			if (!socket.actionSuccess())
+			{
+				printf("Error accepting client Socket: %s\n", socket.lastError().c_str());
+			}
+			printf("Endpoint of Client socket: %s\n", client.getEntpoint().toString().c_str());
 		}
-		printf("Endpoint of Client socket: %s\n", client.getEntpoint().toString().c_str());
 
 		unsigned char receiveBuffer[1024];
 		size_t totalReceived = 0;
@@ -46,14 +53,25 @@ int main()
 
 		std::string storage;
 		int received = 0;
+		bool isUDP = socketType == CSWL::SocketType::CS_SOCK_DGRAM;
+		bool udpIsConnected = false;
+
 		do
 		{
 			received = client.receiveCS(receiveBuffer, 1024);
 			if (!client.actionSuccess())
 			{
+				if (isUDP && !udpIsConnected)
+				{
+					if (client.errorIsTimeout())
+					{
+						continue;
+					}
+				}
 				printf("Receive error: %s", client.lastError().c_str());
 				break;
 			}
+			udpIsConnected = true;
 			totalReceived += received;
 
 			//Be careful of using this strategy :D
@@ -68,7 +86,9 @@ int main()
 	}
 	else if (MODE == CSWLDEMOMODE::CLIENTIPV4)
 	{
-		CSWL::CrossSocket socket = CSWL::CrossSocket(CSWL::ServerOrClient::CLIENT, 80, CSWL::AddressFamily::CS_AF_INET, CSWL::SocketType::CS_SOCK_STREAM, CSWL::IpProtocol::CS_IPPROTO_TCP);
+
+		CSWL::SocketType socketType = CSWL::SocketType::CS_SOCK_STREAM;
+		CSWL::CrossSocket socket = CSWL::CrossSocket(CSWL::ServerOrClient::CLIENT, 80, CSWL::AddressFamily::CS_AF_INET, socketType, CSWL::IpProtocol::CS_IPPROTO_TCP);
 		if (!socket.actionSuccess())
 		{
 			printf("Error creating Socket: %s\n", socket.lastError().c_str());
@@ -77,11 +97,15 @@ int main()
 		CSWL::Endpoint endpoint = socket.getEntpoint();
 		printf("Endpoint of My socket: %s\n", endpoint.toString().c_str());
 		std::string host = "www.http2demo.io";
-		if (!socket.connectCS(host))
+		if (socketType == CSWL::SocketType::CS_SOCK_STREAM)
 		{
-			printf("Error connecting client Socket: %s\n", socket.lastError().c_str());
-			return 0;
+			if (!socket.connectCS(host))
+			{
+				printf("Error connecting client Socket: %s\n", socket.lastError().c_str());
+				return 0;
+			}
 		}
+
 		printf("Endpoint of Server socket: %s\n", socket.getEntpoint().toString().c_str());
 
 		unsigned char receiveBuffer[1024];
@@ -97,14 +121,24 @@ int main()
 
 		std::string storage;
 		int received = 0;
+		bool isUDP = socketType == CSWL::SocketType::CS_SOCK_DGRAM;
+		bool udpIsConnected = false;
 		do
 		{
 			received = socket.receiveCS(receiveBuffer, 1024);
 			if (!socket.actionSuccess())
 			{
+				if (isUDP && !udpIsConnected)
+				{
+					if (socket.errorIsTimeout())
+					{
+						continue;
+					}
+				}
 				printf("Receive error: %s", socket.lastError().c_str());
 				break;
 			}
+			udpIsConnected = true;
 			totalReceived += received;
 
 			//Be careful of using this strategy :D

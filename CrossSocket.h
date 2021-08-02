@@ -31,7 +31,7 @@ namespace CSWL
 		void deconstruction();
 
 		int receiveTimeoutMilli = 800;
-
+		bool currentTimeout = false;
 		void createSocket(std::string domainOrIp = "");
 
 		void bindCS();
@@ -108,6 +108,11 @@ namespace CSWL
 		std::string lastError()
 		{
 			return currentError;
+		}
+
+		bool errorIsTimeout()
+		{
+			return currentTimeout;
 		}
 
 		///
